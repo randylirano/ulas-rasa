@@ -2,18 +2,16 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
-from app.database.connection import get_pool
+from app.database.connection import pool
+from app.routers import users
 
-# Define pool before everything else
-# Ensuring DB connection pool established before our App start processing request
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Initialize DB connection pool on app startup
-    await get_pool()
+    await pool.open(wait=True, timeout=10)
     yield
-    # Close DB connection pool on app shutdown
-    p = await get_pool()
-    await p.close()
+    await pool.close()
+
 
 app = FastAPI(title=settings.app_name, lifespan=lifespan)
 
@@ -25,9 +23,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(users.router)
+
+
 @app.get("/")
 def read_root():
     return {"message": f"{settings.app_name} is running"}
+
 
 @app.get("/health")
 def health_check():

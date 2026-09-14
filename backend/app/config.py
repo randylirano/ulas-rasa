@@ -1,16 +1,13 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
 
 class Settings(BaseSettings):
-    # App
     app_name: str = "Ulas Rasa API"
     environment: str = "development"
-
-    # CORS
     allowed_origins: list[str] = ["http://localhost:3000"]
-    database_url:str
+    database_url: str
 
-    class Config:
-        env_file = ".env"
+    model_config = SettingsConfigDict(env_file=".env")
 
 
-settings = Settings()
+settings = Settings()  # pyright: ignore[reportCallIssue]
